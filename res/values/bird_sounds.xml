@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- This lists the order of the bird sounds that should be read in 
-WARNING:if changed, must change bird_images.xml AND list_of_bird_names.xml -->
+WARNING:if changed, must change bird_images.xml AND bird_names.xml -->
 <resources>
 
     <string-array name="bird_sounds">

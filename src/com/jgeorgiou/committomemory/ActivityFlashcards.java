@@ -19,7 +19,6 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.widget.*;
-import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
@@ -29,25 +28,26 @@ import android.view.*;
 import com.google.android.glass.touchpad.Gesture;
 import com.google.android.glass.touchpad.GestureDetector;
 
-public class ActivityFlashcards extends Activity implements RecognitionListener {
+public class ActivityFlashcards extends ActivityCommitToMemory {
 
-	private FrameLayout frontOfCardView = null;
-	private FrameLayout backOfCardView = null;
-	private ViewSwitcher vs = null;
-	private TextView nameOfItem = null;
-	private ImageView imageOfItem = null;
-	private TextView statusFront = null;
-	private TextView statusBack = null;
-	private TextView indexFront = null;
-	private TextView indexBack = null;
-	private TextView scoreMsgFront = null;
-	private TextView scoreMsgBack = null;
-	private GestureDetector gestureDetector = null;
-	private SpeechRecognizer speechRecognizer = null;
-	private MediaPlayer mPlayer = null;
-	private TextToSpeech tts = null;
-	private Intent speechIntent = null;
-	private Bird[] birds = null;
+	private FrameLayout frontOfCardView;
+	private FrameLayout backOfCardView;
+	private ViewSwitcher vs;
+	private TextView nameOfItem;
+	private ImageView imageOfItem;
+	private TextView statusFront;
+	private TextView statusBack;
+	private TextView indexFront;
+	private TextView indexBack;
+	private TextView scoreMsgFront;
+	private TextView scoreMsgBack;
+	
+	private GestureDetector gestureDetector;
+	private SpeechRecognizer speechRecognizer;
+	private MediaPlayer mPlayer;
+	private TextToSpeech tts;
+	private Intent speechIntent;
+	private Bird[] birds;
 
 	private String[] next_dictionary = { "next", "text", "max", "fax" };
 	private String[] previous_dictionary = { "previous", "prettiest" };
@@ -72,11 +72,11 @@ public class ActivityFlashcards extends Activity implements RecognitionListener 
 	private int totalCorrectImages = 0;
 	private int totalCorrectCalls = 0;
 
-	private String indexStr = null;
+	private String indexStr;
 	private String status = "Listening";
 	private String strTTS = "";
-	private final String TAG_SPEECH = "SPEECH_RESULTS";
-	private final String TAG_DEBUG = "DEBUG";
+	private static final String TAG_SPEECH = "SPEECH_RESULTS";
+	private static final String TAG_DEBUG = "FLASHCARD_DEBUG";
 
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -99,7 +99,8 @@ public class ActivityFlashcards extends Activity implements RecognitionListener 
 				getApplication().getPackageName());
 		speechIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
 		speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-		speechRecognizer.setRecognitionListener(this);
+		//speechRecognizer.setRecognitionListener(this);
+		speechRecognizer.setRecognitionListener(new SpeechListener(this));
 
 		if (SpeechRecognizer.isRecognitionAvailable(this)) {
 			speechRecognizer.startListening(speechIntent);
@@ -107,7 +108,59 @@ public class ActivityFlashcards extends Activity implements RecognitionListener 
 			Log.d(TAG_SPEECH, "Recgonition not available on this device.");
 		}
 	}
+	protected SpeechRecognizer getSpeechRecognizer() {
+		return speechRecognizer;
+	}
+	public Intent getSpeechIntent() {
+		return speechIntent;
+	}
+	
+	public void setOnResults(Bundle results) {
+		speechRecognizer.startListening(speechIntent);
+		commandSet = false;
+	}
 
+	public void setOnPartialResults(Bundle partialResults) {
+		if (!commandSet) {
+			if (activityStarted) {
+				status = "Processing";
+				statusFront.setText(status);
+				statusBack.setText(status);
+			}
+			
+
+			ArrayList<String> data = partialResults
+					.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+
+			int numOfResults = data.size();
+			Log.d(TAG_SPEECH, "Data size = " + numOfResults);
+			String speech_text = "";
+			for (int i = 0; i < numOfResults; i++) {
+				speech_text += data.get(i);
+				Log.d(TAG_SPEECH, "result= " + data.get(i));
+			}
+			processResults(data, numOfResults);
+		}
+	}
+	/**
+	 * Following are the methods for the speech listener
+	 */
+
+	public void setReadyForSpeech() {
+		if (activityStarted) {
+			status = "Listening";
+			statusFront.setText(status);
+			statusBack.setText(status);
+		}
+	}
+
+	public void setOnEndOfSpeech() {
+		if (activityStarted) {
+			status = "Processing";
+			statusFront.setText(status);
+			statusBack.setText(status);
+		}
+	}
 	/**
 	 * Create text-to-speech element
 	 */
@@ -150,9 +203,9 @@ public class ActivityFlashcards extends Activity implements RecognitionListener 
 		int defValue = 0;
 		ArrayList<String> names = getRecordsFromXML(this); // Get names from XML
 		if (numOfCards == 0)
-			showErrorAndClose("The bird names file has no elements");
+			showError("The bird names file has no elements");
 		else if (numOfCards == -1)
-			showErrorAndClose("Cannot read the names file");
+			showError("Cannot read the names file");
 
 		birds = new Bird[numOfCards];
 		// Get bird images from XML
@@ -170,7 +223,7 @@ public class ActivityFlashcards extends Activity implements RecognitionListener 
 		} catch (Exception e) {
 			// check size of images and names arrays equal
 			if (images.length() != numOfCards || calls.length() != numOfCards) { 
-				showErrorAndClose("Lists length do not match");
+				showError("Lists length do not match");
 			}
 		}
 		images.recycle();
@@ -270,7 +323,7 @@ public class ActivityFlashcards extends Activity implements RecognitionListener 
 		try {
 
 			Resources res = activity.getResources();
-			XmlResourceParser xrp = res.getXml(R.xml.list_of_bird_names);
+			XmlResourceParser xrp = res.getXml(R.xml.bird_names);
 			xrp.next();// skips descriptor line in XML file
 			int eventType = xrp.getEventType();
 			while (eventType != XmlPullParser.END_DOCUMENT) {
@@ -358,158 +411,6 @@ public class ActivityFlashcards extends Activity implements RecognitionListener 
 			return gestureDetector.onMotionEvent(event);
 		}
 		return false;
-	}
-
-	/**
-	 * Following are the methods for the speech listener
-	 */
-
-	public void setReadyForSpeech() {
-		if (activityStarted) {
-			status = "Listening";
-			statusFront.setText(status);
-			statusBack.setText(status);
-		}
-	}
-
-	public void setOnEndOfSpeech() {
-		if (activityStarted) {
-			status = "Processing";
-			statusFront.setText(status);
-			statusBack.setText(status);
-		}
-	}
-
-	/**
-	 * Following are the methods for the speech listener
-	 */
-
-	private static final String TAG_LISTENER = "spListener";
-
-	public void onReadyForSpeech(Bundle params) {
-		Log.d(TAG_LISTENER, "onReadyForSpeech");
-		if (activityStarted) {
-			status = "Listening";
-			statusFront.setText(status);
-			statusBack.setText(status);
-		}
-	}
-
-	public void onBeginningOfSpeech() {
-		Log.d(TAG_LISTENER, "onBeginningOfSpeech");
-	}
-
-	public void onRmsChanged(float rmsdB) {
-		// Log.d(TAG_LISTENER, "onRmsChanged");
-	}
-
-	public void onBufferReceived(byte[] buffer) {
-		Log.d(TAG_LISTENER, "onBufferReceived");
-	}
-
-	public void onEndOfSpeech() {
-		Log.d(TAG_LISTENER, "onEndofSpeech");
-
-		if (activityStarted) {
-			status = "Processing";
-			statusFront.setText(status);
-			statusBack.setText(status);
-		}
-	}
-
-	public void onError(int error) {
-		String TAG_ERROR = "SpError";
-
-		Log.d(TAG_LISTENER, "Error code: " + error);
-		String message;
-
-		switch (error) {
-		case SpeechRecognizer.ERROR_AUDIO:
-			message = "Audio recording error";
-			Log.d(TAG_ERROR, message);
-			break;
-
-		case SpeechRecognizer.ERROR_CLIENT:
-			message = "Client side error";
-			Log.d(TAG_ERROR, message);
-			speechRecognizer.stopListening();
-			speechRecognizer.startListening(speechIntent);
-			break;
-
-		case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
-			message = "Insufficient permissions";
-			Log.d(TAG_ERROR, message);
-			break;
-
-		case SpeechRecognizer.ERROR_NETWORK:
-			message = "Network error";
-			Log.d(TAG_ERROR, message);
-			break;
-
-		case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
-			message = "Network timeout";
-			Log.d(TAG_ERROR, message);
-			break;
-
-		case SpeechRecognizer.ERROR_NO_MATCH:
-			message = "No match";
-			Log.d(TAG_ERROR, message);
-			break;
-
-		case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
-			message = "RecognitionService busy";
-			Log.d(TAG_ERROR, message);
-			break;
-
-		case SpeechRecognizer.ERROR_SERVER:
-			message = "error from server";
-			Log.d(TAG_ERROR, message);
-			break;
-
-		case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
-			message = "No speech input";
-			Log.d(TAG_ERROR, message);
-			speechRecognizer.startListening(speechIntent);
-			break;
-
-		default:
-			message = "Didn't understand, please try again.";
-			break;
-		}
-
-	}
-
-	public void onEvent(int eventType, Bundle params) {
-		Log.d(TAG_LISTENER, "onEvent " + eventType);
-	}
-
-	public void onResults(Bundle results) {
-		Log.d(TAG_SPEECH, "onResults " + results);
-		speechRecognizer.startListening(speechIntent);
-		commandSet = false;
-	}
-
-	public void onPartialResults(Bundle partialResults) {
-		if (!commandSet) {
-			if (activityStarted) {
-				status = "Processing";
-				statusFront.setText(status);
-				statusBack.setText(status);
-			}
-			Log.d(TAG_SPEECH, "onPartialResults " + partialResults);
-
-			ArrayList<String> data = partialResults
-					.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-
-			int numOfResults = data.size();
-			Log.d(TAG_SPEECH, "Data size = " + numOfResults);
-			String speech_text = "";
-			for (int i = 0; i < numOfResults; i++) {
-				speech_text += data.get(i);
-				Log.d(TAG_SPEECH, "result= " + data.get(i));
-			}
-			processResults(data, numOfResults);
-		}
 	}
 
 	/**
@@ -834,13 +735,11 @@ public class ActivityFlashcards extends Activity implements RecognitionListener 
 		indexBack.setText("End");
 		strTTS = end_message;
 		tts.speak(strTTS, TextToSpeech.QUEUE_FLUSH, null);
-
 	}
 
 	/**
 	 * Start the flashcards from the beginning
 	 */
-
 	protected void startOverFlashcards() {
 		Log.d(TAG_DEBUG, "Start over command performed");
 		stopMediaAndTTS();
@@ -864,11 +763,8 @@ public class ActivityFlashcards extends Activity implements RecognitionListener 
 	 * @param message
 	 *            the error message
 	 */
-	private void showErrorAndClose(String err) {
+	public void showError(String err) {
 		Log.e(TAG_DEBUG, "ERROR: " + err);
-		setContentView(R.layout.layout_error);
-		TextView title_name = (TextView) findViewById(R.id.error_message);
-		title_name.setText("ERROR: " + err + ", closing app");
 		if (speechRecognizer != null) {
 			speechRecognizer.stopListening();
 			speechRecognizer.cancel();
@@ -876,36 +772,24 @@ public class ActivityFlashcards extends Activity implements RecognitionListener 
 			speechRecognizer = null; // set to null do it does not try this in
 										// onDestroy();
 		}
-		createThread();
+		ErrorCard errorCard = new ErrorCard(this);
+		errorCard.displayErrorCard(err);
 	}
-
+	
 	/**
-	 * Displays the error for a specified time before closing the app
+	 * Exits the app
 	 */
-	private void createThread() {
-		Log.d(TAG_DEBUG, "Creating thread...");
-		Thread thread = new Thread() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(3500);
-					stopService(new Intent(ActivityFlashcards.this,
-							MainService.class));
-					exitApp = true;
-					onDestroy();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		};
-		thread.start();
+	public void closeApp() {
+		exitApp = true;
+		stopService(new Intent(ActivityFlashcards.this,
+				MainService.class));
+		onDestroy();
 	}
-
 	/**
 	 * Stop the flashcard activity and go to main menu or exit
 	 */
 	@Override
-	protected void onDestroy() {
+	public void onDestroy() {
 		super.onDestroy();
 		if (tts != null) {
 			if (tts.isSpeaking())
@@ -916,9 +800,7 @@ public class ActivityFlashcards extends Activity implements RecognitionListener 
 			if (speechRecognizer != null) {
 				speechRecognizer.stopListening();
 				speechRecognizer.cancel();
-				speechRecognizer.destroy(); // release SpeechRecognizer
-											// resources
-
+				speechRecognizer.destroy(); // release SpeechRecognizer resources				
 			}
 			if (mPlayer != null) {
 				if (mPlayer.isPlaying())
@@ -928,7 +810,7 @@ public class ActivityFlashcards extends Activity implements RecognitionListener 
 			}
 			if (!exitApp) {
 				Intent intent = new Intent(ActivityFlashcards.this,
-						ActivityMenu.class); //
+						ActivityMenu.class); 
 				startActivity(intent);
 			}
 			finish();
@@ -936,5 +818,4 @@ public class ActivityFlashcards extends Activity implements RecognitionListener 
 			Log.e(TAG_DEBUG, "ERROR: " + e.getMessage());
 		}
 	}
-
 }
