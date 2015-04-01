@@ -1,7 +1,7 @@
 package com.jgeorgiou.committomemory;
 
 /**
- * The tutorial teaches the user the voice and gesters that can used to navigate through the application
+ * The tutorial teaches the user the voice and gestures that can used to navigate through the application
  */
 
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ import android.view.MotionEvent;
 import android.view.WindowManager;
 import android.widget.*;
 
-public class ActivityTutorial extends Activity implements RecognitionListener {
+public class ActivityTutorial extends ActivityCommitToMemory{
 	
 	private final static int TOTAL_CARDS = 10; //THERE ARE ONLY 10 LESSONS
 	private int card_index = 0;
@@ -97,7 +97,6 @@ public class ActivityTutorial extends Activity implements RecognitionListener {
 					}
 				});
 	}
-
 	/**
 	 * Create the speech recognizer, listener and intent
 	 */
@@ -109,16 +108,71 @@ public class ActivityTutorial extends Activity implements RecognitionListener {
 				getApplication().getPackageName());
 		speechIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
 		speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-		speechRecognizer.setRecognitionListener(this);
+		speechRecognizer.setRecognitionListener(new SpeechListener(this));
 
 		if (SpeechRecognizer.isRecognitionAvailable(this)) {
 			speechRecognizer.startListening(speechIntent);
 
 		} else {
 			Log.d(TAG_SPEECH, "Recgonition not available on this device.");
+			showError("Speech recgonition not available on this device.");
 		}
 	}
+	@Override
+	protected SpeechRecognizer getSpeechRecognizer() {
+		return speechRecognizer;
+	}
 
+	@Override
+	public Intent getSpeechIntent() {
+		return speechIntent;
+	}
+
+	@Override
+	public void setReadyForSpeech() {
+		if (activityStarted) {
+			str_status = "Listening";
+			status.setText(str_status);
+		}	
+	}
+
+	@Override
+	public void setOnEndOfSpeech() {
+		if (activityStarted) {
+			str_status = "Processing";
+			status.setText(str_status);
+		}
+		commandSet = false;
+	}
+
+	@Override
+	public void setOnResults(Bundle results) {
+		speechRecognizer.startListening(speechIntent);
+		commandSet = false;		
+	}
+
+	@Override
+	public void setOnPartialResults(Bundle partialResults) {
+		if (!commandSet) {
+			if (activityStarted) {
+				str_status = "Processing";
+				status.setText(str_status);
+			}	
+			ArrayList<String> data = partialResults
+					.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+
+			int numOfResults = data.size();
+			Log.d(TAG_SPEECH, "Data size = " + numOfResults);
+			String speech_text = "";
+			for (int i = 0; i < numOfResults; i++) {
+				speech_text += data.get(i);
+				Log.d(TAG_SPEECH, "result= " + data.get(i));
+			}
+			processResults(data, numOfResults);
+		}
+		
+	}
+	
 	/**
 	 * Create the gesture detector and only allow gestures when the appropriate card is displayed
 	 */
@@ -223,132 +277,6 @@ public class ActivityTutorial extends Activity implements RecognitionListener {
 		return false;
 	}
 
-	/**
-	 * Following are the methods for the listener
-	 */
-
-	private static final String TAG_LISTENER = "spListener";
-
-	public void onReadyForSpeech(Bundle params) {
-		Log.d(TAG_LISTENER, "onReadyForSpeech");
-		if (activityStarted) {
-			str_status = "Listening";
-			status.setText(str_status);
-		}
-	}
-
-	public void onBeginningOfSpeech() {
-		Log.d(TAG_LISTENER, "onBeginningOfSpeech");
-
-	}
-
-	public void onRmsChanged(float rmsdB) {
-		// Log.d(TAG_LISTENER, "onRmsChanged");
-	}
-
-	public void onBufferReceived(byte[] buffer) {
-		Log.d(TAG_LISTENER, "onBufferReceived");
-	}
-
-	public void onEndOfSpeech() {
-		Log.d(TAG_LISTENER, "onEndofSpeech");
-		if (activityStarted) {
-			str_status = "Processing";
-			status.setText(str_status);
-		}
-		commandSet = false;
-	}
-
-	public void onError(int error) {
-		String TAG_error = "SpError";
-		Log.d(TAG_LISTENER, "Error code: " + error);
-		String message;
-
-		switch (error) {
-		case SpeechRecognizer.ERROR_AUDIO:
-			message = "Audio recording error";
-			Log.d(TAG_error, message);
-			break;
-
-		case SpeechRecognizer.ERROR_CLIENT:
-			message = "Client side error";
-			Log.d(TAG_error, message);
-			speechRecognizer.stopListening();
-			speechRecognizer.startListening(speechIntent);
-			break;
-
-		case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
-			message = "Insufficient permissions";
-			Log.d(TAG_error, message);
-			showErrorAndClose("Application does not have permission for voice recognition");
-			break;
-
-		case SpeechRecognizer.ERROR_NETWORK:
-			message = "Network error";
-			Log.d(TAG_error, message);
-			showErrorAndClose("Problem with the network");
-			break;
-
-		case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
-			message = "Network timeout";
-			Log.d(TAG_error, message);
-			break;
-
-		case SpeechRecognizer.ERROR_NO_MATCH:
-			message = "No match";
-			Log.d(TAG_error, message);
-			break;
-
-		case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
-			message = "RecognitionService busy";
-			Log.d(TAG_error, message);
-			break;
-
-		case SpeechRecognizer.ERROR_SERVER:
-			message = "error from server";
-			Log.d(TAG_error, message);
-			break;
-
-		case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
-			message = "No speech input";
-			Log.d(TAG_error, message);
-			speechRecognizer.startListening(speechIntent);
-			break;
-
-		default:
-			message = "Didn't understand, please try again.";
-			break;
-		}
-	}
-	public void onEvent(int eventType, Bundle params) {
-		Log.d(TAG_LISTENER, "onEvent " + eventType);
-	}
-	public void onResults(Bundle results) {
-		Log.d(TAG_LISTENER, "onResults " + results);
-		speechRecognizer.startListening(speechIntent);
-		commandSet = false;
-	}
-	public void onPartialResults(Bundle partialResults) {
-		if (!commandSet) {
-			if (activityStarted) {
-				str_status = "Processing";
-				status.setText(str_status);
-			}
-			Log.d(TAG_LISTENER, "onPartialResults " + partialResults);
-
-			ArrayList<String> data = partialResults
-					.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-
-			int numOfResults = data.size();
-			Log.d(TAG_SPEECH, "Data size = " + numOfResults);
-			String speech_text = "";
-			for (int i = 0; i < numOfResults; i++) {
-				speech_text += data.get(i);
-				Log.d(TAG_SPEECH, "result= " + data.get(i));
-			}
-			processResults(data, numOfResults);
-		}
-	}
 	/**
 	 * Set up the tutorial's first card
 	 */
@@ -556,39 +484,24 @@ public class ActivityTutorial extends Activity implements RecognitionListener {
 	 * Display error card with message and close the app
 	 * @param message the error message
 	 */
-	private void showErrorAndClose(String err) {
+	public void showError(String err) {
 		Log.e(TAG_DEBUG, "ERROR: " + err);
-		setContentView(R.layout.layout_error);
-		TextView title_name = (TextView) findViewById(R.id.error_message);
-		 title_name.setText("ERROR: " + err + ", closing app");
-		 if (speechRecognizer != null) {
+		if (speechRecognizer != null) {
 				speechRecognizer.stopListening();
 				speechRecognizer.cancel();
 				speechRecognizer.destroy(); // release SpeechRecognizer resources
 				speechRecognizer = null; // set to null do it does not try this in onDestroy();
 				}
-		createThread();
+		ErrorCard errorCard = new ErrorCard(this);
+		errorCard.displayErrorCard(err);
 	}
-	/**
-	 * Displays the error for a specified time before closing the app
-	 */
-	private void createThread() {
-		Log.d(TAG_DEBUG, "Creating thread...");
-		 Thread thread = new Thread(){
-             @Override
-            public void run() {
-                 try {
-                    Thread.sleep(3500);
-                    stopService(new Intent(ActivityTutorial.this, MainService.class));
-                    setResult(RESULT_OK, null);
-    			//	exitApp = true;
-                    onDestroy();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-             }  
-           };
-           thread.start();
+	@Override
+	public void closeApp() {
+		stopService(new Intent(ActivityTutorial.this,
+				MainService.class));
+		setResult(RESULT_OK, null);
+		onDestroy();
+		
 	}
 	@Override
 	public void onDestroy() {
@@ -614,5 +527,7 @@ public class ActivityTutorial extends Activity implements RecognitionListener {
 		}
 
 	}
+
+	
 
 }

@@ -99,13 +99,13 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 				getApplication().getPackageName());
 		speechIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
 		speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-		//speechRecognizer.setRecognitionListener(this);
 		speechRecognizer.setRecognitionListener(new SpeechListener(this));
 
 		if (SpeechRecognizer.isRecognitionAvailable(this)) {
 			speechRecognizer.startListening(speechIntent);
 		} else {
 			Log.d(TAG_SPEECH, "Recgonition not available on this device.");
+			showError("Speech recgonition not available on this device.");
 		}
 	}
 	protected SpeechRecognizer getSpeechRecognizer() {
