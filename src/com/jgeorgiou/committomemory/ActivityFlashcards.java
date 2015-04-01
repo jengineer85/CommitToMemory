@@ -1,7 +1,7 @@
 package com.jgeorgiou.committomemory;
 
 /**
- * This activity creates the flashcards
+ * This activity creates the flashcards and handles the voice commands for navigating the flashcards
  */
 
 import java.util.ArrayList;
