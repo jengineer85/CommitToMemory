@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.jgeorgiou.committomemory"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="19"
+        android:targetSdkVersion="19" />
+     <uses-permission android:name="com.google.android.glass.permission.DEVELOPMENT" />
+     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+     <uses-permission android:name="android.permission.INTERNET" />
+     
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/head"
+        android:label="@string/app_name" >
+         <activity
+            android:name="com.jgeorgiou.committomemory.ActivityMenu"
+            android:label="@string/app_name"
+            android:enabled="true">             
+        </activity>
+        <activity
+            android:name="com.jgeorgiou.committomemory.ActivityFlashcards"
+            android:label="@string/app_name"
+            android:enabled="true">            
+        </activity>
+        <activity
+            android:name="com.jgeorgiou.committomemory.ActivityTutorial"
+            android:label="@string/app_name"
+            android:enabled="true">            
+        </activity>
+        
+
+         <service
+            android:name="com.jgeorgiou.committomemory.MainService"
+            android:enabled="true"
+            android:exported="true"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="com.google.android.glass.action.VOICE_TRIGGER" />
+            </intent-filter>  
+            <!-- Voice command found in res/xml/voice_trigger_start -->
+            <meta-data
+                android:name="com.google.android.glass.VoiceTrigger"
+                android:resource="@xml/voice_trigger_start" />
+        </service>
+    </application>
+
+</manifest>
