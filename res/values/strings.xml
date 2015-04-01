@@ -1,0 +1,43 @@
+<resources>
+
+    <string name="app_name">Commit to Memory</string>
+    <string name="voice_start_app">Commit to Memory</string>
+    <string name="title_ctm">Commit to Memory</string>
+    <string name="tap_menu">\nTap to Begin</string>
+    <string name="exit">Exit</string>
+    <string name="instructions">Instructions</string>
+     <string name="flashcards">Flashcards</string>
+    <string name="next">Next Card</string>
+    <string name="previous">Previous Card</string>
+    <string name="flip">Flip Card</string>
+    <string name="select">Select:</string>
+    <string name="selectA">A</string>
+    <string name="selectB">Band</string>
+    <string name="selectC">C</string>
+    <string name="selectD">D</string>
+    <string name="quiz">Take A Quiz</string>
+    <string name="app_instructions"> You can say:\n\u2022 next   \u2022 previous \n\u2022 flip    \u2022 exit 
+        \nwhen in an activity.\n\nSwipe down at anytime to go back to the Activity Menu.</string>
+        
+	 <string name="menu_instructions">Say \"ok, glass\" then speak your selection from the pop up menu.</string>
+	 
+	<string name="start">\"Start\"</string>
+	   
+	<string name="instruc_next">Say "next" to go to the next card, or swipe back</string>
+	<string name="instruc_previous">Say "previous" to go to the next card, or swipe forward</string>
+	<string name="instruc_flip">Say "flip" to flip the card, or tap</string>
+	<string name="instruc_mainmenu">Say "main menu" to go to the main menu, or swipe down</string>
+	<string name="instruc_exit">Say "exit" at anytime to exit\nEnd of Instructions</string>
+	
+	<string name="flashcard_intro">Welcome to the flashcards, you can say the name of the bird or any other appropriate commands. Say start to begin!</string>
+	
+	<string name="tutorial">Tutorial</string>
+	<string name="tutorial_intro">This tutorial will instruct how to navigate through the flashcards. Say start to begin</string>
+	<string name="tutorial_end">That\'s all! Remember you can say the actions next, previous, flip, play, the name of a bird, main menu 
+	    to go to the main menu and exit to close the program... Have fun learning!!</string>
+	<string name="list_of_commands">Next\nPrevious\nFlip\nPlay\nname of bird\nMain Menu\nExit</string>
+	
+	<string name="all_about_birds">All About Birds</string>
+	<string name="loading">Loading...\nplease wait</string>
+	<string name="see_score">\"Next\" for Score</string>
+</resources>

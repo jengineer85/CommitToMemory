@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:tools="http://schemas.android.com/tools"
+android:id="@+id/launch_new"
+android:orientation="vertical"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:gravity="center_vertical|center_horizontal"
+ >
+ 
+<FrameLayout
+    android:id="@+id/launch_header"
+      android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+      android:layout_gravity="top|center"
+     >
+ <TextView
+     android:id="@+id/title_text"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:textSize="70px"
+     android:text="@string/title_ctm"
+    android:gravity="center|fill_vertical"
+    android:layout_gravity="top|center"
+     android:paddingTop="5sp"  />
+  <TextView
+     android:id="@+id/title_sub"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:textSize="45px"
+     android:textStyle="italic"
+     android:text="@string/all_about_birds"
+    android:gravity="center|fill_vertical"
+    android:layout_gravity="bottom|center"
+     android:layout_marginTop="70sp"
+      />
+ </FrameLayout>
+   <ImageView
+        android:id="@+id/launch_bird_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" 
+        android:src="@drawable/bird_intro_image"
+        android:layout_gravity="center"
+        android:layout_marginTop="35sp"/>  
+
+ <TextView
+     android:id="@+id/tap_text"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:textSize="35px"
+     android:text="@string/tap_menu"
+	android:layout_gravity="bottom|center"
+    android:layout_marginTop="18sp" />
+
+ 
+ 
+ </FrameLayout>

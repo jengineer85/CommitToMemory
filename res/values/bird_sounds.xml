@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This lists the order of the bird sounds that should be read in 
+WARNING:if changed, must change bird_images.xml AND list_of_bird_names.xml -->
+<resources>
+
+    <string-array name="bird_sounds">
+        <item>@raw/belted_kingfisher_song</item>
+		<item>@raw/barred_owl_song</item>
+		<item>@raw/ovenbird_song</item>             
+		
+		<item>@raw/northern_cardinal_song</item>
+		<item>@raw/white_throated_sparrow_song</item>
+		<item>@raw/eastern_bluebird_song</item>
+		
+		<item>@raw/gray_catbird_song</item>
+		<item>@raw/house_wren_song</item>
+		
+		<item>@raw/american_robin_song</item>
+		<item>@raw/indigo_bunting_song</item>
+		
+		<item>@raw/hermit_thrush_song</item>
+		
+		
+		<item>@raw/carolina_wren_song</item>
+		<item>@raw/song_sparrow_song</item>
+		
+		
+		<item>@raw/northern_mockingbird_song</item>
+		
+		<item>@raw/osprey_song</item>
+		
+		
+    </string-array>
+
+</resources>
