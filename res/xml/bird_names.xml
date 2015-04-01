@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<!-- This lists the order of the bird names that should be read in. 
+WARNING:if changed, must change bird_images.xml AND bird_sounds.xml -->
+<inventory> 
+
+<bird_name> 
+<name>Belted Kingfisher</name> 
+</bird_name>
+
+<bird_name> 
+<name>Barred Owl</name> 
+</bird_name>
+
+<bird_name> 
+<name>Ovenbird</name> 
+</bird_name>
+
+<bird_name> 
+<name>Northern Cardinal</name> 
+</bird_name>
+
+<bird_name> 
+<name>White Throated Sparrow</name> 
+</bird_name>
+
+<bird_name> 
+<name>Bluebird</name> 
+</bird_name>
+
+<bird_name> 
+<name>Gray Catbird</name> 
+</bird_name>
+
+
+<bird_name> 
+<name>House Wren</name> 
+</bird_name>
+
+
+<bird_name> 
+<name>Robin</name> 
+</bird_name>
+
+<bird_name> 
+<name>Indigo Bunting</name> 
+</bird_name>
+
+<bird_name> 
+<name>Hermit Thrush</name> 
+</bird_name>
+
+<bird_name> 
+<name>Carolina Wren</name> 
+</bird_name>
+
+<bird_name> 
+<name>Song Sparrow</name> 
+</bird_name>
+
+
+<bird_name> 
+<name>Mockingbird</name> 
+</bird_name>
+
+
+<bird_name> 
+<name>Osprey</name> 
+</bird_name>
+
+
+</inventory>
