@@ -1,7 +1,7 @@
 package com.jgeorgiou.committomemory;
 
 /**
- * The menu activity allows for the Google Glass "ok glass" command to launch the menu, therefor the user can launch 
+ * The menu activity allows for the Google Glass "ok glass" command to launch the menu, therefore the user can launch 
  * and select from the menu via voice commands. Additionally, the user can tap to launch the menu and swipe for menu options.
  */
 import android.app.Activity;
