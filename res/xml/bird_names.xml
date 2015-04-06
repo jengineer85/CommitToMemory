@@ -3,69 +3,69 @@
 WARNING:if changed, must change bird_images.xml AND bird_sounds.xml -->
 <inventory> 
 
-<bird_name> 
-<name>Belted Kingfisher</name> 
-</bird_name>
+<item> 
+<text>Belted Kingfisher</text> 
+</item>
 
-<bird_name> 
-<name>Barred Owl</name> 
-</bird_name>
+<item> 
+<text>Barred Owl</text> 
+</item>
 
-<bird_name> 
-<name>Ovenbird</name> 
-</bird_name>
+<item> 
+<text>Ovenbird</text> 
+</item>
 
-<bird_name> 
-<name>Northern Cardinal</name> 
-</bird_name>
+<item> 
+<text>Northern Cardinal</text> 
+</item>
 
-<bird_name> 
-<name>White Throated Sparrow</name> 
-</bird_name>
+<item> 
+<text>White Throated Sparrow</text> 
+</item>
 
-<bird_name> 
-<name>Bluebird</name> 
-</bird_name>
+<item> 
+<text>Bluebird</text> 
+</item>
 
-<bird_name> 
-<name>Gray Catbird</name> 
-</bird_name>
-
-
-<bird_name> 
-<name>House Wren</name> 
-</bird_name>
+<item> 
+<text>Gray Catbird</text> 
+</item>
 
 
-<bird_name> 
-<name>Robin</name> 
-</bird_name>
-
-<bird_name> 
-<name>Indigo Bunting</name> 
-</bird_name>
-
-<bird_name> 
-<name>Hermit Thrush</name> 
-</bird_name>
-
-<bird_name> 
-<name>Carolina Wren</name> 
-</bird_name>
-
-<bird_name> 
-<name>Song Sparrow</name> 
-</bird_name>
+<item> 
+<text>House Wren</text> 
+</item>
 
 
-<bird_name> 
-<name>Mockingbird</name> 
-</bird_name>
+<item> 
+<text>Robin</text> 
+</item>
+
+<item> 
+<text>Indigo Bunting</text> 
+</item>
+
+<item> 
+<text>Hermit Thrush</text> 
+</item>
+
+<item> 
+<text>Carolina Wren</text> 
+</item>
+
+<item> 
+<text>Song Sparrow</text> 
+</item>
 
 
-<bird_name> 
-<name>Osprey</name> 
-</bird_name>
+<item> 
+<text>Mockingbird</text> 
+</item>
+
+
+<item> 
+<text>Osprey</text> 
+</item>
 
 
 </inventory>
