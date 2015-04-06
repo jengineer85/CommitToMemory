@@ -10,12 +10,6 @@
     <string name="next">Next Card</string>
     <string name="previous">Previous Card</string>
     <string name="flip">Flip Card</string>
-    <string name="select">Select:</string>
-    <string name="selectA">A</string>
-    <string name="selectB">Band</string>
-    <string name="selectC">C</string>
-    <string name="selectD">D</string>
-    <string name="quiz">Take A Quiz</string>
     <string name="app_instructions"> You can say:\n\u2022 next   \u2022 previous \n\u2022 flip    \u2022 exit 
         \nwhen in an activity.\n\nSwipe down at anytime to go back to the Activity Menu.</string>
         
@@ -40,4 +34,12 @@
 	<string name="all_about_birds">All About Birds</string>
 	<string name="loading">Loading...\nplease wait</string>
 	<string name="see_score">\"Next\" for Score</string>
+	<string name= "end_flashcard_message1">"Keep at it and you will learn more!"</string>
+	<string name= "end_flashcard_message2">"Good job, maybe you should review again!"</string>
+	<string name= "end_flashcard_message3">"Great job!"</string>
+	<string name= "end_flashcard_message4">"Awesome! You really know your birds!"</string>
+	<string name= "flip_flashcard_message1">"Keep it up!"</string>
+	<string name= "flip_flashcard_message2">"Way to go!"</string>
+	<string name= "flip_flashcard_message3">"Rock on! You know your birds!"</string>
+	<string name= "flip_flashcard_message4">"Correct!"</string>
 </resources>
