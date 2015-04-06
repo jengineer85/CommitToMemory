@@ -26,7 +26,7 @@ WARNING:if changed, must change bird_images.xml AND bird_names.xml -->
 		<item>@drawable/song_sparrow</item>
 				
 		<item>@drawable/northern_mockingbird</item>
-		
+		<item>@drawable/osprey</item>
 		
 		
 		
