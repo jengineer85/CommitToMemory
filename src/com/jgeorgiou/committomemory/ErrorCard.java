@@ -19,7 +19,7 @@ public class ErrorCard {
 		Log.d(TAG_DEBUG, "Displaying error card...");
 		mainActivity.setContentView(R.layout.layout_error);
 		TextView title_name = (TextView) mainActivity.findViewById(R.id.error_message);
-		title_name.setText("ERROR: " + err + ", closing app");
+	//	title_name.setText("ERROR: " + err + ", closing app");
 		createThread();
 	}
 	
