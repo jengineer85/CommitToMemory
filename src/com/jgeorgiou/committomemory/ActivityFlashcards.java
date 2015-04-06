@@ -1,7 +1,8 @@
 package com.jgeorgiou.committomemory;
 
 /**
- * This activity creates the flashcards and handles the voice commands for navigating the flashcards
+ * This activity creates the flashcards with an image, text and media 
+ * and handles the voice commands for navigating through the flashcards
  */
 
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 	private FrameLayout frontOfCardView;
 	private FrameLayout backOfCardView;
 	private ViewSwitcher vs;
-	private TextView nameOfItem;
+	private TextView textOfItem;
 	private ImageView imageOfItem;
 	private TextView statusFront;
 	private TextView statusBack;
@@ -47,7 +48,7 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 	private MediaPlayer mPlayer;
 	private TextToSpeech tts;
 	private Intent speechIntent;
-	private Bird[] birds;
+	private FlashcardItem[] flashcardItem;
 
 	private String[] next_dictionary = { "next", "text", "max", "fax" };
 	private String[] previous_dictionary = { "previous", "prettiest" };
@@ -65,18 +66,22 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 	private boolean activityStarted = false;
 	private boolean commandSet = false;
 	private boolean exitApp = false;
-	private boolean soundCardActive = false;
+	private boolean mediaCardActive = false;
 
 	private int cardIndex = 0;
 	private int numOfCards = 0;
 	private int totalCorrectImages = 0;
-	private int totalCorrectCalls = 0;
+	private int totalCorrectMedia = 0;
 
 	private String indexStr;
 	private String status = "Listening";
 	private String strTTS = "";
 	private static final String TAG_SPEECH = "SPEECH_RESULTS";
 	private static final String TAG_DEBUG = "FLASHCARD_DEBUG";
+	
+	private ModuleAllAboutBirds myModule = new ModuleAllAboutBirds();
+	private Drawable audioOnlyImage; //image for the "sound only" mode
+	
 
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -85,7 +90,7 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 		displayIntroCard();
 		initSpeechRecognizer();
 		initTTS();
-		setUpCards();
+		setUpCards(myModule);
 	}
 
 	/**
@@ -108,13 +113,15 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 			showError("Speech recgonition not available on this device.");
 		}
 	}
-	protected SpeechRecognizer getSpeechRecognizer() {
+	public SpeechRecognizer getSpeechRecognizer() {
 		return speechRecognizer;
 	}
 	public Intent getSpeechIntent() {
 		return speechIntent;
 	}
-	
+	/**
+	 * Following are the methods for after the speech listener has made required callbacks
+	 */
 	public void setOnResults(Bundle results) {
 		speechRecognizer.startListening(speechIntent);
 		commandSet = false;
@@ -126,12 +133,9 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 				status = "Processing";
 				statusFront.setText(status);
 				statusBack.setText(status);
-			}
-			
-
+			}			
 			ArrayList<String> data = partialResults
 					.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-
 			int numOfResults = data.size();
 			Log.d(TAG_SPEECH, "Data size = " + numOfResults);
 			String speech_text = "";
@@ -142,10 +146,7 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 			processResults(data, numOfResults);
 		}
 	}
-	/**
-	 * Following are the methods for the speech listener
-	 */
-
+	
 	public void setReadyForSpeech() {
 		if (activityStarted) {
 			status = "Listening";
@@ -172,11 +173,9 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 						if (s == TextToSpeech.SUCCESS) {
 							tts.setSpeechRate((float) 0.75);
 							tts.setLanguage(Locale.ENGLISH);
-							// strTTS = getString(R.string.flashcard_intro); //
-							// REMOVED: there is a delay and the user would
-							// speak
-							// tts.speak(strTTS, TextToSpeech.QUEUE_FLUSH,
-							// null); before the tts
+							// Following 2 lines removed. There is a delay and the user would speak before the tts
+							// strTTS = getString(R.string.flashcard_intro); 
+							// tts.speak(strTTS, TextToSpeech.QUEUE_FLUSH, null); 
 						}
 					}
 				});
@@ -196,49 +195,49 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 	/**
 	 * Set flashcard items
 	 */
-	protected void setUpCards() {
-		String birdName;
-		Drawable birdImage;
-		int birdCall;
+	protected void setUpCards(ModuleCommitToMemory module) {
+		String text;
+		Drawable image;
+		audioOnlyImage = getResources().getDrawable(module.getAudioImageResource());
+		int mediaId;
 		int defValue = 0;
-		ArrayList<String> names = getRecordsFromXML(this); // Get names from XML
+		ArrayList<String> allText = getRecordsFromXML(this, module);// Get names from XML 
 		if (numOfCards == 0)
-			showError("The bird names file has no elements");
+			showError("The text file has no elements");
 		else if (numOfCards == -1)
-			showError("Cannot read the names file");
+			showError("Cannot read the text file");
 
-		birds = new Bird[numOfCards];
-		// Get bird images from XML
-		TypedArray images = getResources().obtainTypedArray(R.array.bird_imgs); 
-		TypedArray calls = getResources().obtainTypedArray(R.array.bird_sounds);
+		flashcardItem = new FlashcardItem[numOfCards];
+		// Get images and media from XML
+		TypedArray allImages = getResources().obtainTypedArray(module.getImageResource()); 
+		TypedArray allMedia = getResources().obtainTypedArray(module.getAudioResource());
 
 		try {
 			for (int i = 0; i < numOfCards; i++) {
-				birdName = names.get(i);
-				birdImage = images.getResources().getDrawable(
-						images.getResourceId(i, defValue));
-				birdCall = calls.getResourceId(i, defValue);
-				birds[i] = new Bird(birdName, birdImage, birdCall);
+				text = allText.get(i);
+				image = allImages.getResources().getDrawable(
+						allImages.getResourceId(i, defValue));
+				mediaId = allMedia.getResourceId(i, defValue);
+				flashcardItem[i] = new FlashcardItem(text, image, mediaId);
 			}
 		} catch (Exception e) {
 			// check size of images and names arrays equal
-			if (images.length() != numOfCards || calls.length() != numOfCards) { 
+			if (allImages.length() != numOfCards || allMedia.length() != numOfCards) { 
 				showError("Lists length do not match");
 			}
 		}
-		images.recycle();
-		calls.recycle();
+		allImages.recycle();
+		allMedia.recycle();
 	}
 
 	/**
 	 * Set flashcard view elements
 	 */
-
 	protected void setFlashcardView() {
 		vs = (ViewSwitcher) findViewById(R.id.viewswitcher);
 
-		imageOfItem = (ImageView) findViewById(R.id.front_bird_image);
-		nameOfItem = (TextView) findViewById(R.id.back_bird_name);
+		imageOfItem = (ImageView) findViewById(R.id.front_image);
+		textOfItem = (TextView) findViewById(R.id.back_text);
 
 		frontOfCardView = (FrameLayout) findViewById(R.id.front_of_card);
 		frontOfCardView.setFocusable(true);
@@ -257,17 +256,17 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 		scoreMsgFront = (TextView) findViewById(R.id.score_message_front);
 		scoreMsgBack = (TextView) findViewById(R.id.score_message_back);
 
-		setBirdCard();
+		setCard();
 	}
 
 	/**
 	 * Set up the current bird card
 	 */
-	protected void setBirdCard() {
-		if (!soundCardActive) {
-			imageOfItem.setImageDrawable(birds[cardIndex].getImage());
+	protected void setCard() {
+		if (!mediaCardActive) {
+			imageOfItem.setImageDrawable(flashcardItem[cardIndex].getImage());
 		}
-		nameOfItem.setText(birds[cardIndex].getName());
+		textOfItem.setText(flashcardItem[cardIndex].getText());
 		indexStr = "" + (cardIndex + 1) + "/" + numOfCards;
 		indexFront.setText(indexStr);
 		indexBack.setText(indexStr);
@@ -275,11 +274,10 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 		if (cardIndex == numOfCards - 1) {
 			scoreMsgFront.setVisibility(View.VISIBLE);
 			scoreMsgBack.setVisibility(View.VISIBLE);
-			if (soundCardActive)
+			if (mediaCardActive)
 				scoreMsgFront.setTextColor(Color.WHITE);
 		}
-
-		mPlayer = MediaPlayer.create(this, birds[cardIndex].getCall());
+		mPlayer = MediaPlayer.create(this, flashcardItem[cardIndex].getAudio());
 		mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		mPlayer.start();
 	}
@@ -288,22 +286,21 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 	 * Set the sound card to the front of the flashcard, replaces image
 	 */
 	protected void displaySoundCard() {
-		soundCardActive = true;
-		imageOfItem.setImageDrawable(getResources().getDrawable(
-				R.drawable.bird_singing));
+		mediaCardActive = true;
+		imageOfItem.setImageDrawable(audioOnlyImage);
 		indexFront.setTextColor(Color.WHITE);
 		statusFront.setTextColor(Color.WHITE);
 		if (backOfCardView.getVisibility() == View.VISIBLE)
 			vs.showPrevious();
-		playCall();
+		playMedia();
 	}
 
 	/**
 	 * Set the image to the front of the flashcard, replaces the sound card
 	 */
 	protected void displayImageCard() {
-		soundCardActive = false;
-		imageOfItem.setImageDrawable(birds[cardIndex].getImage());
+		mediaCardActive = false;
+		imageOfItem.setImageDrawable(flashcardItem[cardIndex].getImage());
 		indexFront.setTextColor(Color.BLACK);
 		statusFront.setTextColor(Color.BLACK);
 		if (backOfCardView.getVisibility() == View.VISIBLE)
@@ -316,24 +313,22 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 	 * @param Activity
 	 * @return ArrayList of the item names
 	 */
-	protected ArrayList<String> getRecordsFromXML(Activity activity) {
+	protected ArrayList<String> getRecordsFromXML(Activity activity, ModuleCommitToMemory module) {
 		numOfCards = 0;
 		String name;
-		ArrayList<String> birdNames = new ArrayList<String>();
+		ArrayList<String> allText = new ArrayList<String>();
 		try {
-
 			Resources res = activity.getResources();
-			XmlResourceParser xrp = res.getXml(R.xml.bird_names);
+			XmlResourceParser xrp = res.getXml(module.getTextResource());
 			xrp.next();// skips descriptor line in XML file
 			int eventType = xrp.getEventType();
 			while (eventType != XmlPullParser.END_DOCUMENT) {
-				// while not reached the end of the xml file
 				if (eventType == XmlPullParser.START_TAG) {
-					if (xrp.getName().equals("name")) {
+					if (xrp.getName().equals("text")) {
 						eventType = xrp.next();
 						if (eventType == XmlPullParser.TEXT) {
 							name = xrp.getText();
-							birdNames.add(name);
+							allText.add(name);
 							numOfCards++;
 						}
 					}
@@ -342,7 +337,7 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 				}
 				eventType = xrp.next();
 			}
-			return birdNames;
+			return allText;
 
 		} catch (Exception e) {
 			Log.e("xml_error", e.getMessage());
@@ -357,7 +352,6 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 	 * @param Context
 	 * @return the gesture detector
 	 */
-
 	private GestureDetector createGestureDetector(Context context) {
 		GestureDetector gestureDetector = new GestureDetector(context);
 		// Create a base listener for generic gestures
@@ -420,12 +414,10 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 	 * @param size
 	 */
 	protected void processResults(ArrayList<String> results, int size) {
-
 		String speech_text = "";
 		for (int i = 0; i < size; i++) {
 			speech_text += results.get(i);
 		}
-
 		String[] command = speech_text.split("\\s+");
 		boolean command_match = false;
 		int idx = 0;
@@ -435,7 +427,6 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 		 * a match. When a match is found, process the command and do NOT
 		 * continue to compare for a match
 		 */
-
 		while (!command_match && idx < command.length) {
 			String theCommand = command[idx];
 			Log.d(TAG_SPEECH, "commands= " + command[idx]);
@@ -447,11 +438,11 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 				activityStarted = true;
 			} else if (findMatch(theCommand, mainmenu_dictionary)) {
 				command_match = true;
-				stopMediaAndTTS();
+				pauseMediaAndStopTTS();
 				onDestroy();
 			} else if (findMatch(theCommand, exit_dictionary)) {
 				command_match = true;
-				// stopMediaAndTTS(); //not needed for onDestory
+				// pauseMediaAndStopTTS(); //not needed, in onDestory()
 				stopService(new Intent(ActivityFlashcards.this,
 						MainService.class));
 				exitApp = true;
@@ -459,15 +450,18 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 			} else if (activityStarted) {
 				if ((cardIndex < numOfCards)
 						&& speech_text.toLowerCase(Locale.US).contains(
-								birds[cardIndex].getName().toLowerCase(Locale.US))) {
+								flashcardItem[cardIndex].getText().toLowerCase(Locale.US))) {
 					command_match = true;
 					flipCardCorrectMatch();
 
+					//*********WARNING: Hard coded required. Speech processing comes back "gray cat bird"
+					//*********but the name is listed as "gray catbird"**********//
 				} else if (cardIndex == 8
 						&& speech_text.toLowerCase(Locale.US).contains(
 								"gray cat bird")) {
 					command_match = true;
 					flipCardCorrectMatch();
+					//*********End hard code**********//
 
 				} else if (findMatch(theCommand, next_dictionary)) {
 					command_match = true;
@@ -481,20 +475,19 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 				else if (findMatch(theCommand, flip_dictionary)) {
 					command_match = true;
 					flipCard();
+					
 				} else if (findMatch(theCommand, play_dictionary)) {
 					command_match = true;
 					if (!mPlayer.isPlaying()) {
-						// stopMediaAndTTS(); // do not need to pause mplayer
 						if (tts != null)
 							if (tts.isSpeaking())
 								tts.stop();
-						playCall();
+						playMedia();
 					}
 				}
-
 				else if (findMatch(theCommand, repeat_dictionary)) {
 					command_match = true;
-					stopMediaAndTTS();
+					pauseMediaAndStopTTS();
 					if (!(strTTS.length() == 0) && !strTTS.equals(null)) {
 						Log.d(TAG_DEBUG, "strTTS = " + strTTS);
 						repeat();
@@ -503,22 +496,20 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 
 					else {
 						speakMessageToUser("Sorry, nothing to repeat");
-						Log.d(TAG_DEBUG, "NO TEXT TO REPEAT");
+						Log.d(TAG_DEBUG, "No text to repeat");
 					}
 				}
-
 				else if (findMatch(theCommand, soundOnly_dictionary)) {
 					command_match = true;
-					if (!soundCardActive) {
-						stopMediaAndTTS();
+					if (!mediaCardActive) {
+						pauseMediaAndStopTTS();
 						Log.d(TAG_DEBUG, "Removing the image card...");
 						displaySoundCard();
 					}
-
 				} else if (findMatch(theCommand, showImage_dictionary)) {
 					command_match = true;
-					if (soundCardActive) {
-						stopMediaAndTTS();
+					if (mediaCardActive) {
+						pauseMediaAndStopTTS();
 						Log.d(TAG_DEBUG, "Displaying the image card...");
 						displayImageCard();
 					}
@@ -558,28 +549,18 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 
 	protected void goToNextCard() {
 		if (cardIndex < numOfCards - 1) {
-			stopMediaAndTTS();
+			pauseMediaAndStopTTS();
 			mPlayer.reset();
 			mPlayer.release();
 			strTTS = "";
 			cardIndex++;
-			setBirdCard();
-			/*
-			 * if(cardIndex == numOfCards - 1) { //if after cardIndex++ it is on
-			 * the last card scoreMsgFront.setVisibility(View.VISIBLE);
-			 * scoreMsgBack.setVisibility(View.VISIBLE); if(soundCardActive)
-			 * scoreMsgFront.setTextColor(Color.WHITE); }
-			 */// imageOfItem.setImageResource(bird_images.getResourceId(cardIndex,
-				// defValue));
-				// imageOfItem.setImageResource(R.drawable.belted_kingfisher);
-				// imageOfItem.setImageDrawable(bird_images[cardIndex]);
-
+			setCard();			
 			if (backOfCardView.getVisibility() == View.VISIBLE)
 				vs.showPrevious();
 			Log.d(TAG_DEBUG, "Next command performed");
 		} else if (cardIndex == numOfCards - 1) {
 			cardIndex++;
-			stopMediaAndTTS();
+			pauseMediaAndStopTTS();
 			displayScoreCard();
 		}
 	}
@@ -589,23 +570,18 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 	 */
 	protected void goToPreviousCard() {
 		if (cardIndex > 0) {
-			stopMediaAndTTS();
+			pauseMediaAndStopTTS();
 			mPlayer.reset();
 			mPlayer.release();
-			if (nameOfItem.getTextSize() != 55)
-				nameOfItem.setTextSize(55);
+			if (textOfItem.getTextSize() != 55)
+				textOfItem.setTextSize(55);
 			strTTS = "";
 			if (scoreMsgFront.getVisibility() == View.VISIBLE) {
 				scoreMsgFront.setVisibility(View.INVISIBLE);
 				scoreMsgBack.setVisibility(View.INVISIBLE);
 			}
-
-			/*
-			 * if(cardIndex == numOfCards - 1) { //remove score message if on
-			 * the last card scoreMsgBack.setVisibility(View.INVISIBLE);
-			 * scoreMsgBack.setVisibility(View.INVISIBLE); }
-			 */cardIndex--;
-			setBirdCard();
+			cardIndex--;
+			setCard();
 			if (backOfCardView.getVisibility() == View.VISIBLE)
 				vs.showPrevious();
 			Log.d(TAG_DEBUG, "Back command performed");
@@ -617,20 +593,18 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 	 */
 	protected void flipCard() {
 		if (cardIndex < numOfCards) {
-			stopMediaAndTTS();
-
+			pauseMediaAndStopTTS();
+			
 			if (frontOfCardView.getVisibility() == View.VISIBLE) {
 				vs.showNext();
-				strTTS = birds[cardIndex].getName();
+				strTTS = flashcardItem[cardIndex].getText();
 				tts.speak(strTTS, TextToSpeech.QUEUE_FLUSH, null);
 				Log.d(TAG_DEBUG, "Flip command performed");
 			} else if (backOfCardView.getVisibility() == View.VISIBLE) {
 				vs.showPrevious();
 				Log.d(TAG_DEBUG, "Flip command performed");
 			}
-
 		}
-
 	}
 
 	/**
@@ -638,29 +612,28 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 	 */
 	protected void flipCardCorrectMatch() {
 		if (cardIndex < numOfCards) {
-			stopMediaAndTTS();
+			pauseMediaAndStopTTS();
 			if (frontOfCardView.getVisibility() == View.VISIBLE) {
-				if (soundCardActive)
-					totalCorrectCalls++;
+				if (mediaCardActive)
+					totalCorrectMedia++;
 				else
 					totalCorrectImages++;
-
+				
 				String message = "";
-
 				if (totalCorrectImages % 3 == 0)
-					message = "Keep it up!";
+					message = getString(R.string.flip_flashcard_message1);
 				else if (totalCorrectImages % 2 == 0)
-					message = "Way to go!";
+					message = getString(R.string.flip_flashcard_message2);
 				else if (totalCorrectImages == numOfCards)
-					message = "Rock on! You know your birds!";
+					message = getString(R.string.flip_flashcard_message3);
 				else
-					message = "Correct!";
+					message = getString(R.string.flip_flashcard_message4);
 
-				nameOfItem.setText("" + message + "\n\n"
-						+ birds[cardIndex].getName());
-				nameOfItem.setTextSize(45);
+				textOfItem.setText("" + message + "\n\n"
+						+ flashcardItem[cardIndex].getText());
+				textOfItem.setTextSize(45);
 				vs.showNext();
-				strTTS = message + "That is a" + birds[cardIndex].getName();
+				strTTS = message + "That is a" + flashcardItem[cardIndex].getText();
 				tts.speak(strTTS, TextToSpeech.QUEUE_FLUSH, null);
 				Log.d(TAG_DEBUG, "Flip correct match command performed");
 			}
@@ -668,9 +641,9 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 	}
 
 	/**
-	 * Play the birdcall
+	 * Play the media
 	 */
-	protected void playCall() {
+	protected void playMedia() {
 		if (cardIndex < numOfCards) {
 			if (mPlayer != null)
 				mPlayer.start();
@@ -697,9 +670,9 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 	}
 
 	/**
-	 * Stop playing the birdcall or text-to-speech
+	 * Pause playing the media and stop text-to-speech
 	 */
-	protected void stopMediaAndTTS() {
+	protected void pauseMediaAndStopTTS() {
 		if (mPlayer != null)
 			if (mPlayer.isPlaying())
 				mPlayer.pause();
@@ -717,18 +690,18 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 			vs.showNext();
 		String end_message = "";
 		if (totalCorrectImages < 5)
-			end_message = "Keep at it and you will learn more!";
+			end_message = getString(R.string.end_flashcard_message1);
 		else if (totalCorrectImages >= 5 && totalCorrectImages < 10)
-			end_message = "Good job, maybe you should review again!";
+			end_message = getString(R.string.end_flashcard_message2);
 		else if (totalCorrectImages >= 10 && totalCorrectImages < 20)
-			end_message = "Great job!";
+			end_message =getString(R.string.end_flashcard_message3); 
 		else if (totalCorrectImages >= 20)
-			end_message = "Awesome! You really know your birds!";
+			end_message =getString(R.string.end_flashcard_message4); 
 		String score_information = end_message + "\nTotal Images Correct: "
 				+ totalCorrectImages + "\nTotal Calls Correct: "
-				+ totalCorrectCalls;
-		nameOfItem.setTextSize(30);
-		nameOfItem.setText(score_information
+				+ totalCorrectMedia;
+		textOfItem.setTextSize(30);
+		textOfItem.setText(score_information
 				+ "\n\"Start Over\"\t\"Main Menu\"\t\"Exit\"");
 		scoreMsgFront.setVisibility(View.INVISIBLE);
 		scoreMsgBack.setVisibility(View.INVISIBLE);
@@ -742,17 +715,17 @@ public class ActivityFlashcards extends ActivityCommitToMemory {
 	 */
 	protected void startOverFlashcards() {
 		Log.d(TAG_DEBUG, "Start over command performed");
-		stopMediaAndTTS();
+		pauseMediaAndStopTTS();
 		totalCorrectImages = 0;
-		totalCorrectCalls = 0;
+		totalCorrectMedia = 0;
 		strTTS = "";
 		if (backOfCardView.getVisibility() == View.VISIBLE)
 			vs.showPrevious();
 
 		cardIndex = 0;
-		if (nameOfItem.getTextSize() != 55)
-			nameOfItem.setTextSize(55);
-		setBirdCard();
+		if (textOfItem.getTextSize() != 55)
+			textOfItem.setTextSize(55);
+		setCard();
 		scoreMsgFront.setVisibility(View.INVISIBLE);
 		scoreMsgBack.setVisibility(View.INVISIBLE);
 	}
