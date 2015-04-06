@@ -5,19 +5,13 @@ package com.jgeorgiou.committomemory;
  */
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
-
 import com.google.android.glass.touchpad.Gesture;
 import com.google.android.glass.touchpad.GestureDetector;
-
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
@@ -119,7 +113,7 @@ public class ActivityTutorial extends ActivityCommitToMemory{
 		}
 	}
 	@Override
-	protected SpeechRecognizer getSpeechRecognizer() {
+	public SpeechRecognizer getSpeechRecognizer() {
 		return speechRecognizer;
 	}
 
