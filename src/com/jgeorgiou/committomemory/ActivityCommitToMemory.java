@@ -12,7 +12,7 @@ import android.os.Bundle;
 import android.speech.SpeechRecognizer;
 
 public abstract class ActivityCommitToMemory extends Activity{
-	protected abstract SpeechRecognizer getSpeechRecognizer();
+	public abstract SpeechRecognizer getSpeechRecognizer();
 	public abstract Intent getSpeechIntent();
 	
 	public abstract void setReadyForSpeech();
